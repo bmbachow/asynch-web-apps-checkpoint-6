@@ -1,32 +1,50 @@
-// const apiKey = '85a5c3f67a9c4ca4a4f71870f18c31ba';
-
-function getRepos(user) {
-  const url = `https://api.github.com/users/${user}/repos`;
-
-  const options = {headers: new Headers({Accept: 'application/vnd.github.v3+json'})};
-
-  fetch(url, options)
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      }
-      throw new Error(response.text());
-    })
-    .then((responseJson) => console.log(responseJson))
-    .catch((err) => {
-      console.log(err);
-      $('#js-error-message').text(`Something went wrong: ${err.message}`);
-    });
-}
-
-$('#js-form').on('submit', function (event) {
-  let user = $('#js-search-term').val();
-  console.log('i ran');
-  event.preventDefault();
-  console.log(user);
-  getRepos(user);
-  $('#js-search-term').val('');
-  $('#js-error-message').empty();
+$(function () {
+  console.log('Ready to fetch GitHub User Repo!');
+  watchSubmitButton();
 });
 
-$(getRepos);
+function userInput() {
+  let inputText = $('#listen-user-input').val();
+  return inputText;
+}
+
+function watchSubmitButton() {
+  $('#search-form').submit(e => {
+    console.log('it works!');
+    e.preventDefault();
+    fetchUserName(userInput);
+  });
+}
+
+//Make Request to GitHub API
+function fetchUserName() {
+  fetch('https://api.github.com/users/' + userInput() + '/repos')
+    .then(response => response.json())
+    .then(responseJson => displayResults(responseJson))
+    .catch(error => alert('Hmmm. Cannot find GitHub UserName'));
+}
+
+//Render Repos to the DOM
+function displayResults(responseJson) {
+  console.log(responseJson);
+  $('#display-profile').empty();
+  let responseHtml = '';
+  responseJson.forEach(userRepo => {
+    responseHtml += `<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Repository name:  ${userRepo.name}</h3>
+  </div>
+  <div class="panel-body">
+   <div class= "row>
+   < div class = "col-md-3" >
+         <h3 class = "panel-description">Description: ${userRepo.description} 
+   <div class="col-md-3">
+      <a href=" ${userRepo.html_url}">Repo URL Link</a>
+   </div>
+   </div>
+  </div> 
+</div>`;
+  });
+  $('#display-profile').html(responseHtml);
+  $('.display-results-container').removeClass('hidden');
+}
